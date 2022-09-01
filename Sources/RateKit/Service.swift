@@ -19,7 +19,8 @@ public enum RateKit {
     public static func ratingsService(
         debug: Bool = false,
         launchesBeforeAskingForReview: Int = 5,
-        maxRequestsPerVersion: Int = 1
+        maxRequestsPerVersion: Int = 1,
+        minTimeBetweenPrompts: TimeInterval = 30 * 24 * 60 * 60
     ) -> RatingsService {
         RatingsServiceImpl(
             debug: debug,
@@ -27,7 +28,8 @@ public enum RateKit {
             requester: StoreKitRatings(),
             appInfo: BundleInfo(),
             launchesBeforeAskingForReview: launchesBeforeAskingForReview,
-            maxRequestsPerVersion: maxRequestsPerVersion
+            maxRequestsPerVersion: maxRequestsPerVersion,
+            minTimeBetweenPrompts: minTimeBetweenPrompts
         )
     }
 }
@@ -39,14 +41,16 @@ class RatingsServiceImpl: RatingsService {
     let debug: Bool
     let launchesBeforeAskingForReview: Int
     let maxRequestsPerVersion: Int
+    let minTimeBetweenPrompts: TimeInterval
     
     init(
         debug: Bool,
         store: RatingsStore,
         requester: RatingsRequester,
         appInfo: AppInfoProvider,
-        launchesBeforeAskingForReview: Int = 5,
-        maxRequestsPerVersion: Int = 1
+        launchesBeforeAskingForReview: Int,
+        maxRequestsPerVersion: Int,
+        minTimeBetweenPrompts: TimeInterval
     ) {
         self.debug = debug
         self.store = store
@@ -54,6 +58,7 @@ class RatingsServiceImpl: RatingsService {
         self.appInfo = appInfo
         self.launchesBeforeAskingForReview = launchesBeforeAskingForReview
         self.maxRequestsPerVersion = maxRequestsPerVersion
+        self.minTimeBetweenPrompts = minTimeBetweenPrompts
     }
     
     @discardableResult
@@ -66,6 +71,7 @@ class RatingsServiceImpl: RatingsService {
     func askForRating() {
         log("Asking for ratings...")
         store.requests += 1
+        store.lastRequest = Date()
         requester.askForRating()
     }
     
@@ -76,6 +82,12 @@ class RatingsServiceImpl: RatingsService {
             let missingLaunches = launchesBeforeAskingForReview - store.launches
             log("\(missingLaunches) more launches required before rate request...")
             return false
+        }
+        if let lastRequest = store.lastRequest {
+            guard Date().timeIntervalSince(lastRequest) > minTimeBetweenPrompts else {
+                log("Skipping request, not enough time has passed since last prompt")
+                return false
+            }
         }
         guard store.requests < maxRequestsPerVersion else {
             log("Skipping request, already asked \(store.requests) times...")

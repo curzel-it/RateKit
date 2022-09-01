@@ -4,6 +4,7 @@ protocol RatingsStore {
     var launches: Int { get set }
     var requests: Int { get set }
     var version: String { get set }
+    var lastRequest: Date? { get set }
 }
         
 struct RatingsUserDefaults: RatingsStore {
@@ -22,5 +23,13 @@ struct RatingsUserDefaults: RatingsStore {
     var version: String {
         get { defaults?.string(forKey: "version") ?? "" }
         set { defaults?.set(newValue, forKey: "version") }
+    }
+    
+    var lastRequest: Date? {
+        get {
+            guard let time = defaults?.double(forKey: "lastRequestTime") else { return nil }
+            return Date(timeIntervalSince1970: time)
+        }
+        set { defaults?.set(newValue?.timeIntervalSince1970, forKey: "lastRequestTime") }
     }
 }

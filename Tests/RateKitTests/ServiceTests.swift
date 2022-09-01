@@ -14,7 +14,8 @@ class ServiceTests: XCTestCase {
             requester: MockRequester(),
             appInfo: MockAppInfo(version: "1.0.0"),
             launchesBeforeAskingForReview: 3,
-            maxRequestsPerVersion: 3
+            maxRequestsPerVersion: 3,
+            minTimeBetweenPrompts: -1
         )
     }
     
@@ -65,5 +66,31 @@ class ServiceTests: XCTestCase {
         XCTAssertEqual(service.store.launches, 1)
         XCTAssertEqual(service.store.requests, 0)
         XCTAssertEqual(mockRequester.numberOfRequests, 3)
+    }
+    
+    func testMinTimeBetweenRequestsIsRespected() {
+        let service = RatingsServiceImpl(
+            debug: true,
+            store: MockStore(),
+            requester: MockRequester(),
+            appInfo: MockAppInfo(version: "1.0.0"),
+            launchesBeforeAskingForReview: 1,
+            maxRequestsPerVersion: 3,
+            minTimeBetweenPrompts: 2
+        )
+        service.askForRatingIfNeeded()
+        XCTAssertEqual(service.store.requests, 1)
+        service.askForRatingIfNeeded()
+        XCTAssertEqual(service.store.requests, 1)
+        
+        let exp = expectation(description: "Wait two seconds")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { exp.fulfill() }
+        waitForExpectations(timeout: 3)
+        
+        service.askForRatingIfNeeded()
+        XCTAssertEqual(service.store.requests, 2)
+        
+        service.askForRatingIfNeeded()
+        XCTAssertEqual(service.store.requests, 2)
     }
 }
