@@ -1,18 +1,25 @@
-// swift-tools-version:5.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 5.6
 
 import PackageDescription
 
 let package = Package(
     name: "RateKit",
-    platforms: [
-        .macOS(.v10_15),
-        .iOS(.v12),
-    ],
+    platforms: [.macOS(.v12), .iOS(.v11)],
     products: [
-        .library(name: "RateKit", targets: ["RateKit"]),
+        .library(
+            name: "RateKit",
+            targets: ["RateKit"]
+        )
     ],
+    dependencies: [],
     targets: [
-        .target(name: "RateKit", dependencies: [], path: "Sources")
+        .target(
+            name: "RateKit",
+            dependencies: []
+        ),
+        .testTarget(
+            name: "RateKitTests",
+            dependencies: ["RateKit"]
+        )
     ]
 )
