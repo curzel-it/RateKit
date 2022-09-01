@@ -7,15 +7,16 @@ public protocol RatingsService {
     ///     - debug: Enables logging.
     ///     - launchesBeforeAskingForReview: Number of times this method needs to be called before any prompt is shown. Default 5.
     ///     - maxRequestsPerVersion: Number of prompts that will be shown for each app version. Default 1.
+    @discardableResult
     func askForRatingIfNeeded() -> Bool
     
     /// Will prompt the user to rate the app immediately.
     func askForRating()
 }
 
-extension RatingsService {
+public enum RateKit {
     
-    public static func build(
+    public static func ratingsService(
         debug: Bool = false,
         launchesBeforeAskingForReview: Int = 5,
         maxRequestsPerVersion: Int = 1
