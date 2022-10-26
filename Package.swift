@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "RateKit",
-    platforms: [.macOS(.v12), .iOS(.v11)],
+    platforms: [.macOS(.v11), .iOS(.v11)],
     products: [
         .library(
             name: "RateKit",
